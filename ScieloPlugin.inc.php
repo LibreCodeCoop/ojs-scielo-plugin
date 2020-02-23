@@ -129,16 +129,4 @@ class ScieloPlugin extends ImportExportPlugin {
 			'pluginName' => $this->getName()
 		)) . "\n";
 	}
-
-	/**
-	 * A helper method to stream all publications to a CSV file
-	 */
-	public function export($publications, $filename) {
-		$fp = fopen($filename, 'wt');
-		fputcsv($fp, ['ID', 'Title']);
-		foreach ($publications as $publication) {
-			fputcsv($fp, [$publication->getId(), $publication->getLocalizedTitle()]);
-		}
-		fclose($fp);
-	}
 }

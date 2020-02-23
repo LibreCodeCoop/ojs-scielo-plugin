@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit 
+        bootstrap="./tests/phpunit-bootstrap.php"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        colors="true"
+>
+    <testsuite name="Parser Test Suite">
+        <directory>./tests/</directory>
+    </testsuite>
+</phpunit>
