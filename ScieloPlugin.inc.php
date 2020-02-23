@@ -122,6 +122,17 @@ class ScieloPlugin extends ImportExportPlugin {
 					$this->usage($scriptName);
 					return;
 				}
+
+				$xmlString = file_get_contents($xmlFile);
+				$document = new DOMDocument();
+				try {
+					$document->loadXml($xmlString);
+				} catch (\Exception $th) {
+					echo __('plugins.importexport.common.cliError') . "\n";
+					echo __('plugins.importexport.scielo.error.invalidXmlFile', array('param' => $xmlFile)) . "\n\n";
+					$this->usage($scriptName);
+					return;
+				}
 				return;
 		}
 		$this->usage($scriptName);

@@ -46,4 +46,14 @@ class ScieloPluginTest extends BaseTestCase
         $this->assertNotFalse(strpos($return, 'The input file '));
         $this->assertNotFalse(strpos($return, ' is not readable.'));
     }
+
+    public function testValidFileWithInvalidContent()
+    {
+        $this->mockJournal();
+        $this->mockUser();
+
+        $tempNam = tempnam('/tmp', 'TEST');
+        $return = $this->executeCLI('scielo', ['import', $tempNam, 'validPath']);
+        $this->assertNotFalse(strpos($return, 'Invalid XML file'));
+    }
 }

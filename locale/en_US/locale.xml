@@ -19,4 +19,5 @@ Commands:
 	import [xmlFileName] [journal_path] [user_name]
 ]]></message>
 	<message key="plugins.importexport.scielo.error.unknownUser">The specified user, "{$userName}", does not exist.</message>
+	<message key="plugins.importexport.scielo.error.invalidXmlFile">Invalid XML file "{$xmlFile}".</message>
 </locale>
