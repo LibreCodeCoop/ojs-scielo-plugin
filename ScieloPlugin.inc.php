@@ -115,6 +115,13 @@ class ScieloPlugin extends ImportExportPlugin {
 					$this->usage($scriptName);
 					return;
 				}
+
+				if (!file_exists($xmlFile)) {
+					echo __('plugins.importexport.common.cliError') . "\n";
+					echo __('plugins.importexport.common.export.error.inputFileNotReadable', array('param' => $xmlFile)) . "\n\n";
+					$this->usage($scriptName);
+					return;
+				}
 				return;
 		}
 		$this->usage($scriptName);

@@ -6,35 +6,59 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
 {
     /**
      * Execute the plug-in via its CLI interface.
-     * @param $pluginName string
+     * @param $pluginPath string
      * @param $args array
      * @return string CLI output
      */
-    protected function executeCLI($pluginName, $args) {
+    protected function executeCLI($pluginPath, $args) {
         ob_start();
-        $plugin = $this->instantiatePlugin($pluginName);
+        if (!defined('PWD')) define('PWD', getcwd());
+        $plugin = PluginRegistry::loadPlugin('importexport', $pluginPath);
+        self::assertTrue(is_a($plugin, 'ImportExportPlugin'));
         PKPTestHelper::xdebugScream(false);
         $plugin->executeCLI(get_class($this), $args, true);
         PKPTestHelper::xdebugScream(true);
         return ob_get_clean();
     }
+    public function mockJournal()
+    {
+        // Mock Journal
+        HookRegistry::clear('contextdao::_getbypath');
+        HookRegistry::register('contextdao::_getbypath',function($hookName, $args) {
+            $args[2] = new ADORecordSet_array();
+            $args[2]->_numOfRows = 1;
+            $args[2]->fields = $args[2]->bind = [
+                'journal_id' => 1,
+                'path' => 'validPath',
+                'seq' => 1,
+                'primary_locale' => 'en_US',
+                'enabled' => 1
+            ];
+            return true;
+        });
+        HookRegistry::register('dao::_getdataobjectsettings', function($hookName, $args) {
+            $args[2] = new ADORecordSet_empty();
+            return true;
+        });
+    }
 
-    /**
-     * Instantiate an import-export plugin.
-     * @param $pluginName string
-     * @return ImportExportPlugin
-     */
-    protected function instantiatePlugin($pluginName) {
-        // Load all import-export plug-ins.
-        if (!defined('PWD')) define('PWD', getcwd());
-        PluginRegistry::loadCategory('importexport');
-        $plugin = PluginRegistry::getPlugin('importexport', $pluginName);
-        // self::assertType() has been removed from PHPUnit 3.6
-        // but self::assertInstanceOf() is not present in PHPUnit 3.4
-        // which is our current test server version.
-        // FIXME: change this to assertInstanceOf() after upgrading the
-        // test server.
-        self::assertTrue(is_a($plugin, 'ImportExportPlugin'));
-        return $plugin;
+    public function mockUser()
+    {
+        // Mock User
+        HookRegistry::clear('userdao::_getbyusername');
+        HookRegistry::register('userdao::_getbyusername',function($hookName, $args) {
+            $args[2] = new ADORecordSet_array();
+            $args[2]->_numOfRows = 1;
+            $user = json_decode(file_get_contents(
+                PHPUNIT_ADDITIONAL_INCLUDE_DIRS.'/mock/userData.json'
+            ), true);
+            $args[2]->fields = $args[2]->bind = $user;
+            return true;
+        });
+        HookRegistry::clear('dao::_getdataobjectsettings');
+        HookRegistry::register('dao::_getdataobjectsettings', function($hookName, $args) {
+            $args[2] = new ADORecordSet_empty();
+            return true;
+        });
     }
 }
