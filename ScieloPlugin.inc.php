@@ -81,7 +81,7 @@ class ScieloPlugin extends ImportExportPlugin {
 		if (!$journal) {
 			if ($journalPath != '') {
 				echo __('plugins.importexport.common.cliError') . "\n";
-				echo __('plugins.importexport.common.error.unknownJournal', array('journalPath' => $journalPath)) . "\n\n";
+				echo __('plugins.importexport.common.error.unknownJournal', ['journalPath' => $journalPath]) . "\n\n";
 			}
 			$this->usage($scriptName);
 			return;
@@ -99,7 +99,7 @@ class ScieloPlugin extends ImportExportPlugin {
 				if (!$user) {
 					if ($userName != '') {
 						echo __('plugins.importexport.common.cliError') . "\n";
-						echo __('plugins.importexport.native.error.unknownUser', array('userName' => $userName)) . "\n\n";
+						echo __('plugins.importexport.native.error.unknownUser', ['userName' => $userName]) . "\n\n";
 					}
 					$this->usage($scriptName);
 					return;
@@ -107,7 +107,7 @@ class ScieloPlugin extends ImportExportPlugin {
 
 				if (!file_exists($xmlFile)) {
 					echo __('plugins.importexport.common.cliError') . "\n";
-					echo __('plugins.importexport.common.export.error.inputFileNotReadable', array('param' => $xmlFile)) . "\n\n";
+					echo __('plugins.importexport.common.export.error.inputFileNotReadable', ['param' => $xmlFile]) . "\n\n";
 					$this->usage($scriptName);
 					return;
 				}
@@ -116,9 +116,12 @@ class ScieloPlugin extends ImportExportPlugin {
 				$document = new DOMDocument();
 				try {
 					$document->loadXml($xmlString);
-				} catch (\Exception $th) {
+				} catch (\Exception $e) {
 					echo __('plugins.importexport.common.cliError') . "\n";
-					echo __('plugins.importexport.scielo.error.invalidXmlFile', array('param' => $xmlFile)) . "\n\n";
+					echo __('plugins.importexport.scielo.error.invalidXmlFile', [
+						'xmlFile' => $xmlFile,
+						'message' => $e->getMessage()
+					]) . "\n\n";
 					$this->usage($scriptName);
 					return;
 				}
@@ -131,9 +134,9 @@ class ScieloPlugin extends ImportExportPlugin {
 	 * @copydoc ImportExportPlugin::usage()
 	 */
 	public function usage($scriptName) {
-		echo __('plugins.importexport.scielo.cliUsage', array(
+		echo __('plugins.importexport.scielo.cliUsage', [
 			'scriptName' => $scriptName,
 			'pluginName' => $this->getName()
-		)) . "\n";
+		]) . "\n";
 	}
 }
