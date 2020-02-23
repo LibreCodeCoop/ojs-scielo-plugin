@@ -1,16 +1,5 @@
 <?php
-/**
- * @file plugins/importexport/scielo/ScieloPlugin.inc.php
- *
- * Copyright (c) 2014-2019 Simon Fraser University
- * Copyright (c) 2003-2019 John Willinsky
- * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
- *
- * @class ScieloPlugin
- * @ingroup plugins_importexport_exampleimportexport
- *
- * @brief An example plugin demonstrating how to write an import/export plugin.
- */
+
 import('lib.pkp.classes.plugins.ImportExportPlugin');
 class ScieloPlugin extends ImportExportPlugin {
 	/**
