@@ -125,6 +125,9 @@ class ScieloPlugin extends ImportExportPlugin {
 					$this->usage($scriptName);
 					return;
 				}
+				$this->import('ScieloDeployment');
+				$deployment = new ScieloDeployment($journal, $user);
+				$deployment->setImportPath(dirname($xmlFile));
 				return;
 		}
 		$this->usage($scriptName);

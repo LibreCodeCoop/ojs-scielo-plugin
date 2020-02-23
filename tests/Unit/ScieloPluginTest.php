@@ -56,4 +56,17 @@ class ScieloPluginTest extends BaseTestCase
         $return = $this->executeCLI('scielo', ['import', $tempNam, 'validPath']);
         $this->assertNotFalse(strpos($return, 'Invalid XML file'));
     }
+
+    public function testValidXml()
+    {
+        $this->mockJournal();
+        $this->mockUser();
+
+        $return = $this->executeCLI('scielo', [
+            'import',
+            PHPUNIT_ADDITIONAL_INCLUDE_DIRS.'/mock/article.xml',
+            'validPath'
+        ]);
+        $this->assertEmpty($return);
+    }
 }
