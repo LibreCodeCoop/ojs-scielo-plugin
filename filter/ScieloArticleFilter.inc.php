@@ -2,7 +2,7 @@
 
 import('lib.pkp.classes.filter.PersistableFilter');
 
-class ArticleScieloFilter extends PersistableFilter {
+class ScieloArticleFilter extends PersistableFilter {
 
     /** @var NativeImportExportDeployment */
     var $_deployment;
@@ -36,7 +36,7 @@ class ArticleScieloFilter extends PersistableFilter {
 
     public function getClassName()
     {
-        return 'plugins.importexport.scielo.filter.ArticleScieloFilter';
+        return 'plugins.importexport.scielo.filter.ScieloArticleFilter';
     }
 
     /**

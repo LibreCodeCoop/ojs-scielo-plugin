@@ -70,9 +70,9 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
             $args[2]->_numOfRows = $args[2]->_currentRow= 1;
             $args[2]->fields = $args[2]->bind = [
                 'filter_id' => 1,
-                'class_name' => 'plugins.importexport.scielo.filter.ArticleScieloFilter',
+                'class_name' => 'plugins.importexport.scielo.filter.ScieloArticleFilter',
                 'filter_group_id' => 1,
-                'display_name' => 'ArticleScieloFilter',
+                'display_name' => 'ScieloArticleFilter',
                 'is_template' => 0,
                 'parent_filter_id' => 0,
                 'seq' => 0

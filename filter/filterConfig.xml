@@ -15,7 +15,7 @@
 		<!-- XML article input -->
 		<filter
 			inGroup="scielo-xml=>article"
-			class="plugins.importexport.scielo.filter.ArticleScieloFilter"
+			class="plugins.importexport.scielo.filter.ScieloArticleFilter"
 			isTemplate="0" />
 	</filters>
 </filterConfig>
