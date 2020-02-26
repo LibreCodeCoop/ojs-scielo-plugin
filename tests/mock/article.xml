@@ -2,4 +2,67 @@
 <!DOCTYPE article
   PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.1 20151215//EN" "https://jats.nlm.nih.gov/publishing/1.1/JATS-journalpublishing1.dtd">
 <article article-type="review-article" dtd-version="1.1" specific-use="sps-1.7" xml:lang="en" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <front>
+    <journal-meta>
+      <journal-id journal-id-type="nlm-ta">Cad Saude Publica</journal-id>
+      <journal-id journal-id-type="publisher-id">csp</journal-id>
+      <journal-title-group>
+        <journal-title>Cadernos de Saúde Pública</journal-title>
+        <abbrev-journal-title abbrev-type="publisher">Cad. Saúde Pública</abbrev-journal-title>
+      </journal-title-group>
+      <issn pub-type="ppub">0102-311X</issn>
+      <issn pub-type="epub">1678-4464</issn>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="doi">10.2495/0102-311X00785447</article-id>
+      <article-id pub-id-type="other">02001</article-id>
+      <article-categories>
+        <subj-group subj-group-type="heading">
+          <subject>REVIEW</subject>
+        </subj-group>
+      </article-categories>
+      <title-group>
+        <article-title>English Title</article-title>
+        <trans-title-group xml:lang="pt">
+          <trans-title><italic>pt_BR Title</italic></trans-title>
+        </trans-title-group>
+        <trans-title-group xml:lang="es">
+          <trans-title><italic>es Title</italic></trans-title>
+        </trans-title-group>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Doe</surname>
+            <given-names>Jhon</given-names>
+          </name>
+          <xref ref-type="aff" rid="aff1"><sup>1</sup></xref>
+          <xref ref-type="corresp" rid="c1">*</xref>
+        </contrib>
+      </contrib-group>
+      <aff id="aff1">
+        <label>1</label>
+        <institution content-type="original"> Sector, University Name, City, Country.</institution>
+        <institution content-type="normalized">University Name</institution>
+        <institution content-type="orgdiv1">Sector 2</institution>
+        <institution content-type="orgname">University Name</institution>
+        <addr-line>
+          <city>City</city>
+        </addr-line>
+        <country country="BR">Brazil</country>
+      </aff>
+      <author-notes>
+        <corresp id="c1">*Correspondence Name Surname Sector, University Name. Street Name s/n, City, CT 50190-070, Country. <email>jhondoe@email.com</email>
+        </corresp>
+        <fn fn-type="con" id="fn1">
+          <p>Contributions of correspondence author.</p>
+        </fn>
+      </author-notes>
+      <pub-date pub-type="epub">
+        <month>01</month>
+        <year>2018</year>
+      </pub-date>
+      <volume>34</volume>
+    </article-meta>
+  </front>
 </article>
