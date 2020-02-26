@@ -4,7 +4,18 @@ Import SciELO XML into OJS.
 
 ## How to usage
 
-Install the plugin and run this command line to see the usage instructions:
+### Install
+
+Clone and run install:
+
+```
+git clone --progress -b "${OJS_VERSION}" --single-branch --depth 1 --recurse-submodules -j 4 https://github.com/LyseonTech/ojs-scielo-plugin plugins/importexport/scielo
+php lib/pkp/tools/installPluginVersion.php plugins/importexport/scielo/version.xml
+```
+
+### Import
+
+Run this command line to see the usage instructions:
 
 ```bash
 php tools/importExport.php ScieloPlugin

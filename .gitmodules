@@ -1,0 +1,3 @@
+[submodule "jats-dtds"]
+	path = jats-dtds
+	url = https://github.com/JATS4R/jats-dtds
