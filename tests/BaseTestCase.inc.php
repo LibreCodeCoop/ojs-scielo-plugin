@@ -20,7 +20,7 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
         PKPTestHelper::xdebugScream(true);
         return ob_get_clean();
     }
-    public function mockJournal()
+    protected function mockJournal()
     {
         // Mock Journal
         HookRegistry::clear('contextdao::_getbypath');
@@ -42,7 +42,7 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
         });
     }
 
-    public function mockUser()
+    protected function mockUser()
     {
         // Mock User
         HookRegistry::clear('userdao::_getbyusername');
