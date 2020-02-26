@@ -34,7 +34,7 @@ class ScieloPluginTest extends BaseTestCase
             return true;
         });
         $return = $this->executeCLI('scielo', ['import', 'file.xml', 'invalidPath']);
-        $this->assertNotFalse(strpos($return, 'The specified journal path, "invalidPath", does not exist.'));
+        $this->assertTrue(is_numeric(strpos($return, 'The specified journal path, "invalidPath", does not exist.')));
     }
 
     public function testInvalidFile()
@@ -43,8 +43,8 @@ class ScieloPluginTest extends BaseTestCase
         $this->mockUser();
 
         $return = $this->executeCLI('scielo', ['import', 'file.xml', 'invalidFile']);
-        $this->assertNotFalse(strpos($return, 'The input file '));
-        $this->assertNotFalse(strpos($return, ' is not readable.'));
+        $this->assertTrue(is_numeric(strpos($return, 'The input file ')));
+        $this->assertTrue(is_numeric(strpos($return, ' is not readable.')));
     }
 
     public function testValidFileWithInvalidContent()
@@ -54,7 +54,7 @@ class ScieloPluginTest extends BaseTestCase
 
         $tempNam = tempnam('/tmp', 'TEST');
         $return = $this->executeCLI('scielo', ['import', $tempNam, 'validPath']);
-        $this->assertNotFalse(strpos($return, 'Invalid XML file'));
+        $this->assertTrue(is_numeric(strpos($return, 'Invalid XML file')));
     }
 
     public function testValidXml()
