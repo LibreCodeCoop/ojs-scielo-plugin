@@ -7,7 +7,7 @@ class ScieloPluginTest extends BaseTestCase
     public function testWhenWithoutArgsReturnUsage()
     {
         HookRegistry::clear('contextdao::_getbypath');
-        HookRegistry::register('contextdao::_getbypath',function($hookName, $args) {
+        HookRegistry::register('contextdao::_getbypath', function($hookName, $args) {
             $args[2] = new ADORecordSet_empty();
             return true;
         });
@@ -18,7 +18,7 @@ class ScieloPluginTest extends BaseTestCase
     public function testInvalidJournalPath()
     {
         HookRegistry::clear('contextdao::_getbypath');
-        HookRegistry::register('contextdao::_getbypath',function($hookName, $args) {
+        HookRegistry::register('contextdao::_getbypath', function($hookName, $args) {
             $args[2] = new ADORecordSet_empty();
             return true;
         });
@@ -29,7 +29,7 @@ class ScieloPluginTest extends BaseTestCase
     public function testInvalidUser()
     {
         HookRegistry::clear('contextdao::_getbypath');
-        HookRegistry::register('contextdao::_getbypath',function($hookName, $args) {
+        HookRegistry::register('contextdao::_getbypath', function($hookName, $args) {
             $args[2] = new ADORecordSet_empty();
             return true;
         });
