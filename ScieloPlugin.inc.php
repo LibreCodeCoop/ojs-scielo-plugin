@@ -147,6 +147,7 @@ class ScieloPlugin extends ImportExportPlugin {
 		$filterDao = DAORegistry::getDAO('FilterDAO');
 		$scieloImportFilters = $filterDao->getObjectsByGroup($filter);
 		assert(count($scieloImportFilters) == 1); // Assert only a single unserialization filter
+		/** @var ScieloArticleFilter */
 		$importFilter = array_shift($scieloImportFilters);
 		$importFilter->setDeployment($deployment);
 
