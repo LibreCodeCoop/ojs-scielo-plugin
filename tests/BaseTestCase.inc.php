@@ -61,4 +61,41 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
             return true;
         });
     }
+
+    protected function mockFilter()
+    {
+        HookRegistry::clear('filterdao::_getobjectsbygroup');
+        HookRegistry::register('filterdao::_getobjectsbygroup', function($hookName, $args) {
+            $args[2] = new ADORecordSet_array();
+            $args[2]->_numOfRows = $args[2]->_currentRow= 1;
+            $args[2]->fields = $args[2]->bind = [
+                'filter_id' => 1,
+                'class_name' => 'plugins.importexport.scielo.filter.ArticleScieloFilter',
+                'filter_group_id' => 1,
+                'display_name' => 'ArticleScieloFilter',
+                'is_template' => 0,
+                'parent_filter_id' => 0,
+                'seq' => 0
+            ];
+            return true;
+        });
+    }
+
+    protected function mockFilterGroup()
+    {
+        HookRegistry::clear('filtergroupdao::_getobjectbyid');
+        HookRegistry::register('filtergroupdao::_getobjectbyid', function($hookName, $args) {
+            $args[2] = new ADORecordSet_array();
+            $args[2]->_numOfRows = $args[2]->_currentRow= 1;
+            $args[2]->fields = $args[2]->bind = [
+                'filter_group_id' => 1,
+                'symbolic' => 'scielo-xml=>article',
+                'display_name' => 'plugins.importexport.scielo.displayName',
+                'description' => 'plugins.importexport.scielo.description',
+                'input_type' => 'xml::dtd',
+                'output_type' => 'class::classes.article.Article[]',
+            ];
+            return true;
+        });
+    }
 }

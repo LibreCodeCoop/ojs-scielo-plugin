@@ -61,6 +61,8 @@ class ScieloPluginTest extends BaseTestCase
     {
         $this->mockJournal();
         $this->mockUser();
+        $this->mockFilter();
+        $this->mockFilterGroup();
 
         $return = $this->executeCLI('scielo', [
             'import',
