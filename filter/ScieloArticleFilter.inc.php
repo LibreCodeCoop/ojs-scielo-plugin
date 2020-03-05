@@ -5,8 +5,24 @@ require_once __DIR__ . '/ScieloSubmissionFilter.inc.php';
 class ScieloArticleFilter extends ScieloSubmissionFilter
 {
 
-    /** @var NativeImportExportDeployment */
-    var $_deployment;
+    /** 
+     * @var NativeImportExportDeployment
+     */
+    public $_deployment;
+
+    /**
+     * Primary locale of Article
+     *
+     * @var string
+     */
+    private $locale;
+
+    /**
+     * Languages of Article translations
+     * 
+     * @var array
+     */
+    private $translations = [];
 
     /**
      * Constructor
@@ -81,19 +97,33 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
             $submission->setSectionId($sectionId);
 
-            $submissionLocale = $this->translateLocale(
+            $this->locale = $this->translateLocale(
                 $node->ownerDocument->documentElement->getAttribute('xml:lang')
             );
-            if (empty($submissionLocale)) {
-                $submissionLocale = $context->getPrimaryLocale();
+            if (empty($this->locale)) {
+                $this->locale = $context->getPrimaryLocale();
             }
-            $submission->setLocale($submissionLocale);
+            $submission->setLocale($this->locale);
+            $this->getLanguageTranslations($node);
 
             $submission->setContextId($context->getId());
             $submission->stampStatusModified();
+            $submission->setAbstract($this->getINnerHTML($node->getElementsByTagName('abstract')->item(0)), $this->locale);
+            foreach ($this->translations as $short => $long) {
+                $element = $xpath->query('//trans-abstract[@xml:lang="'.$short.'"]');
+                if ($element->length) {
+                    $submission->setAbstract($this->getINnerHTML($element->item(0)), $long);
+                }
+            }
             $submission->setStatus(STATUS_QUEUED);
             $submission->setSubmissionProgress(0);
-            $submission->setTitle($node->getElementsByTagName('article-title')->item(0)->textContent, $submissionLocale);
+            $submission->setTitle($this->getINnerHTML($node->getElementsByTagName('article-title')->item(0)), $this->locale);
+            foreach ($this->translations as $short => $long) {
+                $element = $xpath->query('//trans-title-group[@xml:lang="'.$short.'"]/trans-title');
+                if ($element->length) {
+                    $submission->setTitle($this->getINnerHTML($element->item(0)), $long);
+                }
+            }
 
             $submission->setData('DOI', $doi);
             if (!HookRegistry::call('ScieloArticleFilter::handleFrontElement', array(&$submission))) {
@@ -102,6 +132,24 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             $deployment->setSubmission($submission);
         }
         return $submission;
+    }
+
+    private function getLanguageTranslations(\DOMElement $node)
+    {
+        $titles = $node->getElementsByTagName('trans-title-group');
+        foreach ($titles as $title) {
+            $lang = $title->getAttribute('xml:lang');
+            $this->translations[$lang] = $this->translateLocale($lang);
+        }
+    }
+
+    private function getINnerHTML(\DOMNode $node)
+    {
+        $innerHTML = '';
+        foreach ($node->childNodes as $child)  { 
+            $innerHTML .= $node->ownerDocument->saveHTML($child);
+        }
+        return trim($innerHTML);
     }
 
     /**
@@ -129,9 +177,9 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
      * Convert small locale to long locale
      *
      * @param string $locale
-     * @return string|null
+     * @return string
      */
-    private function translateLocale(string $locale): ?string
+    private function translateLocale(string $locale): string
     {
         switch($locale) {
             case 'en':

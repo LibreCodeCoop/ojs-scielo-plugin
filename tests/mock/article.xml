@@ -63,6 +63,15 @@
         <year>2018</year>
       </pub-date>
       <volume>34</volume>
+      <abstract>
+        <p>Abstract en.</p>
+      </abstract>
+      <trans-abstract xml:lang="pt">
+        <p>Trans Abstract pt.</p>
+      </trans-abstract>
+      <trans-abstract xml:lang="es">
+        <p>Trans Abstract es.</p>
+      </trans-abstract>
     </article-meta>
   </front>
 </article>

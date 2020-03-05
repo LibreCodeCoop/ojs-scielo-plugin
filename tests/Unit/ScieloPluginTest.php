@@ -76,7 +76,12 @@ class ScieloPluginTest extends BaseTestCase
         HookRegistry::register('ScieloArticleFilter::handleFrontElement', function($hookName, $args) {
             $locale = $args[0]->getLocale();
             $this->assertEquals('en_US', $locale);
-            $this->assertEquals('English Title italic', $args[0]->getTitle($locale));
+            $this->assertEquals('English Title <italic>italic</italic>', $args[0]->getTitle($locale));
+            $this->assertEquals('<italic>pt_BR Title</italic>', $args[0]->getTitle('pt_BR'));
+            $this->assertEquals('<italic>es Title</italic>', $args[0]->getTitle('es_ES'));
+            $this->assertEquals('<p>Abstract en.</p>', $args[0]->getAbstract($locale));
+            $this->assertEquals('<p>Trans Abstract pt.</p>', $args[0]->getAbstract('pt_BR'));
+            $this->assertEquals('<p>Trans Abstract es.</p>', $args[0]->getAbstract('es_ES'));
             $this->assertEquals(1, $args[0]->getJournalId());
             $this->assertEquals(STATUS_QUEUED, $args[0]->getStatus());
             return true;
