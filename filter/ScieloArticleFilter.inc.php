@@ -159,13 +159,23 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         }
     }
 
-    private function getINnerHTML(\DOMNode $node)
+    private function getINnerHTML(\DOMNode $node): string
     {
         $innerHTML = '';
         foreach ($node->childNodes as $child)  { 
             $innerHTML .= $node->ownerDocument->saveHTML($child);
         }
-        return trim($innerHTML);
+        return trim($this->translateTags($innerHTML));
+    }
+
+    private function translateTags(string $text): string
+    {
+        $text = str_replace(
+            ['<italic>', '</italic>'],
+            ['<i>', '</i>'],
+            $text
+        );
+        return $text;
     }
 
     /**

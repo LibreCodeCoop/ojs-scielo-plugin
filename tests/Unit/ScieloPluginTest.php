@@ -77,9 +77,9 @@ class ScieloPluginTest extends BaseTestCase
             $locale = $args[0]->getLanguage();
             $this->assertEquals('en_US', $locale);
             $this->assertEquals('en_US', $args[0]->getLocale());
-            $this->assertEquals('English Title <italic>italic</italic>', $args[0]->getTitle($locale));
-            $this->assertEquals('<italic>pt_BR Title</italic>', $args[0]->getTitle('pt_BR'));
-            $this->assertEquals('<italic>es Title</italic>', $args[0]->getTitle('es_ES'));
+            $this->assertEquals('English Title <i>italic</i>', $args[0]->getTitle($locale));
+            $this->assertEquals('<i>pt_BR Title</i>', $args[0]->getTitle('pt_BR'));
+            $this->assertEquals('<i>es Title</i>', $args[0]->getTitle('es_ES'));
             $this->assertEquals('<p>Abstract en.</p>', $args[0]->getAbstract($locale));
             $this->assertEquals('<p>Trans Abstract pt.</p>', $args[0]->getAbstract('pt_BR'));
             $this->assertEquals('<p>Trans Abstract es.</p>', $args[0]->getAbstract('es_ES'));
