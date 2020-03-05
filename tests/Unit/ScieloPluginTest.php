@@ -63,6 +63,19 @@ class ScieloPluginTest extends BaseTestCase
         $this->mockUser();
         $this->mockFilter();
         $this->mockFilterGroup();
+        HookRegistry::clear('articledao::_getbysetting');
+        HookRegistry::register('articledao::_getbysetting', function($hookName, $args) {
+            return true;
+        });
+        HookRegistry::clear('ScieloArticleFilter::getSectionCodeByTitle');
+        HookRegistry::register('ScieloArticleFilter::getSectionCodeByTitle', function($hookName, $args) {
+            $args[2] = 1;
+            return true;
+        });
+        HookRegistry::clear('ScieloArticleFilter::handleFrontElement');
+        HookRegistry::register('ScieloArticleFilter::handleFrontElement', function($hookName, $args) {
+            return true;
+        });
 
         $return = $this->executeCLI('scielo', [
             'import',
