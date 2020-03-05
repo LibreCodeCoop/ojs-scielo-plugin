@@ -22,7 +22,7 @@
         </subj-group>
       </article-categories>
       <title-group>
-        <article-title>English Title</article-title>
+        <article-title>English Title <italic>italic</italic></article-title>
         <trans-title-group xml:lang="pt">
           <trans-title><italic>pt_BR Title</italic></trans-title>
         </trans-title-group>

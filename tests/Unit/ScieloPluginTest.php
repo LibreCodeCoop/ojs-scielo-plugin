@@ -74,6 +74,11 @@ class ScieloPluginTest extends BaseTestCase
         });
         HookRegistry::clear('ScieloArticleFilter::handleFrontElement');
         HookRegistry::register('ScieloArticleFilter::handleFrontElement', function($hookName, $args) {
+            $locale = $args[0]->getLocale();
+            $this->assertEquals('en_US', $locale);
+            $this->assertEquals('English Title italic', $args[0]->getTitle($locale));
+            $this->assertEquals(1, $args[0]->getJournalId());
+            $this->assertEquals(STATUS_QUEUED, $args[0]->getStatus());
             return true;
         });
 

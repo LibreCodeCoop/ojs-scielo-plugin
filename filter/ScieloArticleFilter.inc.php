@@ -51,16 +51,12 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         $deployment = $this->getDeployment();
         $context = $deployment->getContext();
         
-        $submission = $this->handleFrontElement($node->getElementsByTagName('front')->item(0));
-
-        $return = [];
-        return $return;
+        $submission = $this->saveSubmission($node);
     }
 
-    private function handleFrontElement(\DOMElement $front)
+    private function saveSubmission(\DOMElement $node)
     {
-        $owner = $front->ownerDocument;
-        $xpath = new DOMXPath($owner);
+        $xpath = new DOMXPath($node->ownerDocument);
 
         $deployment = $this->getDeployment();
         $context = $deployment->getContext();
@@ -85,18 +81,19 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
             $submission->setSectionId($sectionId);
 
-            $submission->setContextId($context->getId());
-            $submission->stampStatusModified();
-            $submission->setStatus(STATUS_QUEUED);
-            $submission->setSubmissionProgress(0);
-
             $submissionLocale = $this->translateLocale(
-                $front->ownerDocument->documentElement->getAttribute('xml:lang')
+                $node->ownerDocument->documentElement->getAttribute('xml:lang')
             );
             if (empty($submissionLocale)) {
                 $submissionLocale = $context->getPrimaryLocale();
             }
             $submission->setLocale($submissionLocale);
+
+            $submission->setContextId($context->getId());
+            $submission->stampStatusModified();
+            $submission->setStatus(STATUS_QUEUED);
+            $submission->setSubmissionProgress(0);
+            $submission->setTitle($node->getElementsByTagName('article-title')->item(0)->textContent, $submissionLocale);
 
             $submission->setData('DOI', $doi);
             if (!HookRegistry::call('ScieloArticleFilter::handleFrontElement', array(&$submission))) {
