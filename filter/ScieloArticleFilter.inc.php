@@ -104,10 +104,12 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
                 $this->locale = $context->getPrimaryLocale();
             }
             $submission->setLocale($this->locale);
+            $submission->setLanguage($this->locale);
             $this->getLanguageTranslations($node);
 
             $submission->setContextId($context->getId());
             $submission->stampStatusModified();
+            $submission->setDateSubmitted($this->getHistoryDate($xpath, 'received'). ' 00:00:00');
             $submission->setAbstract($this->getINnerHTML($node->getElementsByTagName('abstract')->item(0)), $this->locale);
             foreach ($this->translations as $short => $long) {
                 $element = $xpath->query('//trans-abstract[@xml:lang="'.$short.'"]');
@@ -116,6 +118,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
                 }
             }
             $submission->setStatus(STATUS_QUEUED);
+            $submission->setStageId(WORKFLOW_STAGE_ID_PRODUCTION);
             $submission->setSubmissionProgress(0);
             $submission->setTitle($this->getINnerHTML($node->getElementsByTagName('article-title')->item(0)), $this->locale);
             foreach ($this->translations as $short => $long) {
@@ -132,6 +135,19 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             $deployment->setSubmission($submission);
         }
         return $submission;
+    }
+
+    private function getHistoryDate(\DOMXPath $xpath, string $type): ?string
+    {
+        $elements = $xpath->query('//history/date');
+        if ($elements->length)
+        foreach($elements as $element) {
+            if ($element->getAttribute('date-type') == $type) {
+                return $element->getElementsByTagName('year')->item(0)->textContent . '-' .
+                       $element->getElementsByTagName('month')->item(0)->textContent . '-' .
+                       $element->getElementsByTagName('day')->item(0)->textContent;
+            }
+        }
     }
 
     private function getLanguageTranslations(\DOMElement $node)
