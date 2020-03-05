@@ -67,6 +67,9 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
 
         $submissionDao = Application::getSubmissionDAO();
         $doi = trim($xpath->query('//article-id[@pub-id-type="doi"]')->item(0)->textContent);
+        if (!$doi) {
+            throw new Exception('DOI not found');
+        }
         $submission = $submissionDao->getBySetting('DOI', $doi);
         if (!$submission->getCount()) {
             $submission = $submissionDao->newDataObject();
@@ -85,6 +88,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             $submission->setContextId($context->getId());
             $submission->stampStatusModified();
             $submission->setStatus(STATUS_QUEUED);
+            $submission->setSubmissionProgress(0);
 
             $submissionLocale = $this->translateLocale(
                 $front->ownerDocument->documentElement->getAttribute('xml:lang')
@@ -94,7 +98,6 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
             $submission->setLocale($submissionLocale);
 
-            $submission->setSubmissionProgress(0);
             $submission->setData('DOI', $doi);
             if (!HookRegistry::call('ScieloArticleFilter::handleFrontElement', array(&$submission))) {
                 $submissionDao->insertObject($submission);
