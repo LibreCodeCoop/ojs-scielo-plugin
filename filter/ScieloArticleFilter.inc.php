@@ -1,8 +1,9 @@
 <?php
 
-import('lib.pkp.classes.filter.PersistableFilter');
+require_once __DIR__ . '/ScieloSubmissionFilter.inc.php';
 
-class ScieloArticleFilter extends PersistableFilter {
+class ScieloArticleFilter extends ScieloSubmissionFilter
+{
 
     /** @var NativeImportExportDeployment */
     var $_deployment;
@@ -15,25 +16,6 @@ class ScieloArticleFilter extends PersistableFilter {
         parent::__construct($filterGroup);
     }
 
-    //
-    // Deployment management
-    //
-    /**
-     * Set the import/export deployment
-     * @param $deployment NativeImportExportDeployment
-     */
-    public function setDeployment($deployment) {
-        $this->_deployment = $deployment;
-    }
-
-    /**
-     * Get the import/export deployment
-     * @return NativeImportExportDeployment
-     */
-    public function getDeployment() {
-        return $this->_deployment;
-    }
-
     public function getClassName()
     {
         return 'plugins.importexport.scielo.filter.ScieloArticleFilter';
@@ -41,12 +23,125 @@ class ScieloArticleFilter extends PersistableFilter {
 
     /**
      * @see Filter::process()
-     * @param $input string
+     * @param $input string|DOMDocument
      * @return mixed array
      */
     public function &process(&$input)
     {
+        $importedObjects =& parent::process($input);
+        // Index imported content
+        import('classes.search.ArticleSearchIndex');
+        foreach ($importedObjects as $submission) {
+            assert(is_a($submission, 'Submission'));
+            ArticleSearchIndex::articleMetadataChanged($submission);
+            ArticleSearchIndex::submissionFilesChanged($submission);
+        }
+        ArticleSearchIndex::articleChangesFinished();
+
+        return $importedObjects;
+    }
+
+    /**
+     * Handle an Article import.
+     * The Article must have a valid section in order to be imported
+     * @param $node DOMElement
+     */
+    public function handleElement(\DOMElement $node)
+    {
+        $deployment = $this->getDeployment();
+        $context = $deployment->getContext();
+        
+        $submission = $this->handleFrontElement($node->getElementsByTagName('front')->item(0));
+
         $return = [];
         return $return;
+    }
+
+    private function handleFrontElement(\DOMElement $front)
+    {
+        $owner = $front->ownerDocument;
+        $xpath = new DOMXPath($owner);
+
+        $deployment = $this->getDeployment();
+        $context = $deployment->getContext();
+
+        $submissionDao = Application::getSubmissionDAO();
+        $doi = trim($xpath->query('//article-id[@pub-id-type="doi"]')->item(0)->textContent);
+        $submission = $submissionDao->getBySetting('DOI', $doi);
+        if (!$submission->getCount()) {
+            $submission = $submissionDao->newDataObject();
+
+            $sectionTitle = trim($xpath->query('//article-categories/subj-group/subject')->item(0)->textContent);
+            if (!$sectionTitle) {
+                throw new Exception('Section not found in XML');
+            }
+            $sectionTitle = explode(':', $sectionTitle)[0];
+            $sectionId = $this->getSectionIdByTitle($sectionTitle, $context->getId());
+            if (!$sectionId) {
+                throw new Exception('Section not found in OJS');
+            }
+            $submission->setSectionId($sectionId);
+
+            $submission->setContextId($context->getId());
+            $submission->stampStatusModified();
+            $submission->setStatus(STATUS_QUEUED);
+
+            $submissionLocale = $this->translateLocale(
+                $front->ownerDocument->documentElement->getAttribute('xml:lang')
+            );
+            if (empty($submissionLocale)) {
+                $submissionLocale = $context->getPrimaryLocale();
+            }
+            $submission->setLocale($submissionLocale);
+
+            $submission->setSubmissionProgress(0);
+            $submission->setData('DOI', $doi);
+            if (!HookRegistry::call('ScieloArticleFilter::handleFrontElement', array(&$submission))) {
+                $submissionDao->insertObject($submission);
+            }
+            $deployment->setSubmission($submission);
+        }
+        return $submission;
+    }
+
+    /**
+     * Return the section id By Title or null when not found
+     *
+     * @param string $sectionTitle
+     * @param integer $journalId
+     * @return integer|null
+     */
+    private function getSectionIdByTitle(string $sectionTitle, int $journalId): ?int
+    {
+        $return = null;
+        if (HookRegistry::call('ScieloArticleFilter::getSectionCodeByTitle', array(&$sectionTitle, &$journalId, &$return))) {
+            return $return;
+        }
+        $sectionDao = Application::getSectionDAO();
+        $section = $sectionDao->getByTitle($sectionTitle, $journalId);
+        if ($section) {
+            return $section->getId();
+        }
+        return $return;
+    }
+
+    /**
+     * Convert small locale to long locale
+     *
+     * @param string $locale
+     * @return string|null
+     */
+    private function translateLocale(string $locale): ?string
+    {
+        switch($locale) {
+            case 'en':
+                return 'en_US';
+            case 'pt':
+                return 'pt_BR';
+            case 'es':
+                return 'es_ES';
+            default:
+                return $locale;
+        }
     }
 }
