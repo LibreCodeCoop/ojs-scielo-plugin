@@ -87,14 +87,37 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
         HookRegistry::register('filtergroupdao::_getobjectbyid', function($hookName, $args) {
             $args[2] = new ADORecordSet_array();
             $args[2]->_numOfRows = $args[2]->_currentRow= 1;
-            $args[2]->fields = $args[2]->bind = [
-                'filter_group_id' => 1,
-                'symbolic' => 'scielo-xml=>article',
-                'display_name' => 'plugins.importexport.scielo.displayName',
-                'description' => 'plugins.importexport.scielo.description',
-                'input_type' => 'xml::dtd',
-                'output_type' => 'class::classes.article.Article[]',
-            ];
+            switch ($args[1]) {
+                case 1:
+                    $args[2]->fields = $args[2]->bind = [
+                        'filter_group_id' => 1,
+                        'symbolic' => 'article=>dc11',
+                        'display_name' => 'plugins.metadata.dc11.articleAdapter.displayName',
+                        'description' => 'plugins.metadata.dc11.articleAdapter.description',
+                        'input_type' => 'class::classes.article.Article',
+                        'output_type' => 'metadata::plugins.metadata.dc11.schema.Dc11Schema(ARTICLE)',
+                    ];
+                    break;
+                case 3:
+                    $args[2]->fields = $args[2]->bind = [
+                        'filter_group_id' => 3,
+                        'symbolic' => 'article=>mods34',
+                        'display_name' => 'plugins.metadata.mods34.articleAdapter.displayName',
+                        'description' => 'plugins.metadata.mods34.articleAdapter.description',
+                        'input_type' => 'class::classes.article.Article',
+                        'output_type' => 'metadata::plugins.metadata.mods34.schema.Mods34Schema(ARTICLE)',
+                    ];
+                    break;
+                default:
+                    $args[2]->fields = $args[2]->bind = [
+                        'filter_group_id' => 1,
+                        'symbolic' => 'scielo-xml=>article',
+                        'display_name' => 'plugins.importexport.scielo.displayName',
+                        'description' => 'plugins.importexport.scielo.description',
+                        'input_type' => 'xml::dtd',
+                        'output_type' => 'class::classes.article.Article[]',
+                    ];
+            }
             return true;
         });
     }
