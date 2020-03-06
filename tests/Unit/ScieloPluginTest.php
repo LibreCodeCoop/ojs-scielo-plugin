@@ -72,8 +72,8 @@ class ScieloPluginTest extends BaseTestCase
             $args[2] = 1;
             return true;
         });
-        HookRegistry::clear('ScieloArticleFilter::handleFrontElement');
-        HookRegistry::register('ScieloArticleFilter::handleFrontElement', function($hookName, $args) {
+        HookRegistry::clear('ScieloArticleFilter::saveSubmission');
+        HookRegistry::register('ScieloArticleFilter::saveSubmission', function($hookName, $args) {
             $locale = $args[0]->getLanguage();
             $this->assertEquals('en_US', $locale);
             $this->assertEquals('en_US', $args[0]->getLocale());

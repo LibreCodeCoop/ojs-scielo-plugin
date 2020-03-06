@@ -18,6 +18,13 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
     private $locale;
 
     /**
+     * Country code
+     *
+     * @var string
+     */
+    private $countryCode;
+
+    /**
      * Languages of Article translations
      * 
      * @var array
@@ -97,9 +104,8 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
             $submission->setSectionId($sectionId);
 
-            $this->locale = $this->translateLocale(
-                $node->ownerDocument->documentElement->getAttribute('xml:lang')
-            );
+            $this->countryCode = strtoupper($node->ownerDocument->documentElement->getAttribute('xml:lang'));
+            $this->locale = $this->countryToLocale($this->countryCode);
             if (empty($this->locale)) {
                 $this->locale = $context->getPrimaryLocale();
             }
@@ -129,7 +135,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
 
             $submission->setData('DOI', $doi);
-            if (!HookRegistry::call('ScieloArticleFilter::handleFrontElement', array(&$submission))) {
+            if (!HookRegistry::call('ScieloArticleFilter::saveSubmission', array(&$submission))) {
                 $submissionDao->insertObject($submission);
             }
             $deployment->setSubmission($submission);
@@ -155,7 +161,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         $titles = $node->getElementsByTagName('trans-title-group');
         foreach ($titles as $title) {
             $lang = $title->getAttribute('xml:lang');
-            $this->translations[$lang] = $this->translateLocale($lang);
+            $this->translations[$lang] = $this->countryToLocale($lang);
         }
     }
 
@@ -205,14 +211,14 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
      * @param string $locale
      * @return string
      */
-    private function translateLocale(string $locale): string
+    private function countryToLocale(string $locale): string
     {
-        switch($locale) {
-            case 'en':
+        switch(strtoupper($locale)) {
+            case 'EN':
                 return 'en_US';
-            case 'pt':
+            case 'PT':
                 return 'pt_BR';
-            case 'es':
+            case 'ES':
                 return 'es_ES';
             default:
                 return $locale;
