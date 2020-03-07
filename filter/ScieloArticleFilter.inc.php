@@ -71,6 +71,14 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
      */
     public function handleElement(\DOMElement $node)
     {
+// issues
+// issue_settings
+// submissions
+// submission_file_settings
+// submission_files
+// submission_galleys
+// published_submissions
+
         $deployment = $this->getDeployment();
         $context = $deployment->getContext();
         
