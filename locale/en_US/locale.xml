@@ -24,4 +24,6 @@ Commands:
 Error:
 	{$message}
 ]]></message>
+	<message key="plugins.importexport.scielo.settings.form.defaultAuthorEmail">Default author email</message>
+	<message key="plugins.importexport.crossref.settings.form.defaultAuthorEmailRequired">Please enter the default author email.</message>
 </locale>
