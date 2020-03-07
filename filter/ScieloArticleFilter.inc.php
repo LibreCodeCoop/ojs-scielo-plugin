@@ -139,8 +139,56 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
                 $submissionDao->insertObject($submission);
             }
             $deployment->setSubmission($submission);
+            $this->saveAuthors($submission, $node);
         }
         return $submission;
+    }
+
+    private function saveAuthors(\Article $submission, \DOMElement $node)
+    {
+        $xpath = new DOMXPath($node->ownerDocument);
+        
+        $authors = $xpath->query('//contrib-group/contrib');
+        if(!$authors->length) {
+            return;
+        }
+        $authorDao = DAORegistry::getDAO('AuthorDAO');
+        $author = $authorDao->newDataObject();
+        foreach ($authors as $authorNode) {
+            $name = $authorNode->getElementsByTagName('name')->item(0);
+            if ($name->getElementsByTagName('given-names')->length) {
+                $author->setGivenName(trim($name->getElementsByTagName('given-names')->item(0)->textContent), $this->locale);
+            }
+            if ($name->getElementsByTagName('surname')->length) {
+                $author->setFamilyName(trim($name->getElementsByTagName('surname')->item(0)->textContent), $this->locale);
+            }
+            if ($name->getElementsByTagName('suffix')->length) {
+                $author->setData('suffix', trim($name->getElementsByTagName('suffix')->item(0)->textContent), $this->locale);
+            }
+            $author->setUserGroupId(14); // Author
+            $author->setSubmissionId($submission->getId());
+            $author->setCountry($this->countryCode);
+            $author->setPrimaryContact($this->isPrimaryContact($authorNode));
+            $author->setIncludeInBrowse(1);
+            $author->setSubmissionLocale($submission->getLocale());
+            if (!HookRegistry::call('ScieloArticleFilter::saveAuthors', array(&$author, &$authorDao, &$submission))) {
+                $authorDao->insertObject($author);
+            }
+        }
+    }
+
+    private function isPrimaryContact(\DOMNode $node): bool
+    {
+        $elements = $node->getElementsByTagName('xref');
+        if (!$elements->length) {
+            return false;
+        }
+        foreach($elements as $element) {
+            if ($element->getAttribute('ref-type') == 'corresp') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private function getHistoryDate(\DOMXPath $xpath, string $type): ?string

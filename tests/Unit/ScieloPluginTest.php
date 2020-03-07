@@ -87,7 +87,25 @@ class ScieloPluginTest extends BaseTestCase
             $this->assertEquals(1, $args[0]->getJournalId());
             $this->assertEquals(STATUS_QUEUED, $args[0]->getStatus());
             $this->assertEquals(WORKFLOW_STAGE_ID_PRODUCTION, $args[0]->getStageId());
+            $args[0]->setId(1);
             return true;
+        });
+        HookRegistry::clear('ScieloArticleFilter::saveAuthors');
+        HookRegistry::register('ScieloArticleFilter::saveAuthors', function($hookName, $args) {
+            $locale = $args[0]->getSubmissionLocale();
+            $this->assertEquals('en_US', $locale);
+            $this->assertEquals('EN', $args[0]->getCountry());
+            $this->assertEquals('Jhon', $args[0]->getGivenName($locale));
+            $this->assertEquals('Doe', $args[0]->getFamilyName($locale));
+            $this->assertEquals(14, $args[0]->getUserGroupId());
+            $this->assertContains($args[0]->getUserGroupId(), [14]);
+            $this->assertEquals(1, $args[0]->getIncludeInBrowse());
+            $this->assertEquals(1, $args[0]->getSubmissionId());
+            return true;
+        });
+        HookRegistry::clear('authordao::getAdditionalFieldNames');
+        HookRegistry::register('authordao::getAdditionalFieldNames', function($hookName, $args) {
+            $args[1][] = 'suffix';
         });
 
         $return = $this->executeCLI('scielo', [
