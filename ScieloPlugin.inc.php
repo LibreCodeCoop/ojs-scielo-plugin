@@ -40,10 +40,18 @@ class ScieloPlugin extends ImportExportPlugin {
 		switch (array_shift($args)) {
 			case 'index':
 			case '':
+				$router = $request->getRouter();
+				$context = $router->getContext($request);
+		
 				$templateMgr = TemplateManager::getManager($request);
-				$templateMgr->assign(array(
-					'configurationErrors' => EXPORT_CONFIG_ERROR_SETTINGS,
-				));
+
+				$form = $this->_instantiateSettingsForm($context);
+				$form->initData();
+				if (!$form->getData('defaultAuthorEmail')) {
+					$templateMgr->assign(array(
+						'configurationErrors' => EXPORT_CONFIG_ERROR_SETTINGS,
+					));
+				}
 				$templateMgr->display($this->getTemplateResource('index.tpl'));
 				break;
 		}
