@@ -39,6 +39,13 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
     private $plugin;
 
     /**
+     * DOMXPath
+     *
+     * @var \DOMXPath
+     */
+    private $xpath;
+
+    /**
      * Constructor
      * @param $filterGroup FilterGroup
      */
@@ -91,13 +98,13 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
 
     private function saveSubmission(\DOMElement $node)
     {
-        $xpath = new DOMXPath($node->ownerDocument);
+        $this->xpath = new DOMXPath($node->ownerDocument);
 
         $deployment = $this->getDeployment();
         $context = $deployment->getContext();
 
         $submissionDao = Application::getSubmissionDAO();
-        $doi = trim($xpath->query('//article-id[@pub-id-type="doi"]')->item(0)->textContent);
+        $doi = trim($this->xpath->query('//article-id[@pub-id-type="doi"]')->item(0)->textContent);
         if (!$doi) {
             throw new Exception('DOI not found');
         }
@@ -105,7 +112,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         if (!$submission->getCount()) {
             $submission = $submissionDao->newDataObject();
 
-            $sectionTitle = trim($xpath->query('//article-categories/subj-group/subject')->item(0)->textContent);
+            $sectionTitle = trim($this->xpath->query('//article-categories/subj-group/subject')->item(0)->textContent);
             if (!$sectionTitle) {
                 throw new Exception('Section not found in XML');
             }
@@ -127,10 +134,10 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
 
             $submission->setContextId($context->getId());
             $submission->stampStatusModified();
-            $submission->setDateSubmitted($this->getHistoryDate($xpath, 'received'). ' 00:00:00');
+            $submission->setDateSubmitted($this->getHistoryDate('received'). ' 00:00:00');
             $submission->setAbstract($this->getINnerHTML($node->getElementsByTagName('abstract')->item(0)), $this->locale);
             foreach ($this->translations as $short => $long) {
-                $element = $xpath->query('//trans-abstract[@xml:lang="'.$short.'"]');
+                $element = $this->xpath->query('//trans-abstract[@xml:lang="'.$short.'"]');
                 if ($element->length) {
                     $submission->setAbstract($this->getINnerHTML($element->item(0)), $long);
                 }
@@ -140,7 +147,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             $submission->setSubmissionProgress(0);
             $submission->setTitle($this->getINnerHTML($node->getElementsByTagName('article-title')->item(0)), $this->locale);
             foreach ($this->translations as $short => $long) {
-                $element = $xpath->query('//trans-title-group[@xml:lang="'.$short.'"]/trans-title');
+                $element = $this->xpath->query('//trans-title-group[@xml:lang="'.$short.'"]/trans-title');
                 if ($element->length) {
                     $submission->setTitle($this->getINnerHTML($element->item(0)), $long);
                 }
@@ -152,15 +159,14 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
             $deployment->setSubmission($submission);
             $this->saveAuthors($submission, $node);
+            $this->saveFiles($submission, $node);
         }
         return $submission;
     }
 
     private function saveAuthors(\Article $submission, \DOMElement $node)
     {
-        $xpath = new DOMXPath($node->ownerDocument);
-        
-        $authors = $xpath->query('//contrib-group/contrib');
+        $authors = $this->xpath->query('//contrib-group/contrib');
         if(!$authors->length) {
             return;
         }
@@ -179,15 +185,72 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
             $author->setUserGroupId(14); // Author
             $author->setSubmissionId($submission->getId());
-            $author->setCountry($this->countryCode);
             $author->setPrimaryContact($this->isPrimaryContact($authorNode));
             $author->setIncludeInBrowse(1);
             $author->setSubmissionLocale($submission->getLocale());
             $author->setEmail($this->plugin->getSetting($submission->getJournalId(), 'defaultAuthorEmail'));
+            $author = $this->setAff($node, $author);
             if (!HookRegistry::call('ScieloArticleFilter::saveAuthors', array(&$author, &$authorDao, &$submission))) {
                 $authorDao->insertObject($author);
             }
         }
+    }
+
+    private function setAff(\DOMNode $node, Author $author): Author
+    {
+        $elements = $node->getElementsByTagName('xref');
+        if (!$elements->length) {
+            return $author;
+        }
+        foreach($elements as $element) {
+            if ($element->getAttribute('ref-type') == 'aff') {
+                $rid = $element->getAttribute('rid');
+                $aff = $this->xpath->query('//aff[@id="'.$rid.'"]')->item(0);
+                $author = $this->setCountry($aff, $author);
+                $author = $this->setCity($aff, $author);
+                $author = $this->setinstituition($aff, $author);
+                return $author;
+            }
+        }
+        return $author;
+    }
+
+    private function setinstituition(\DOMNode $node, Author $author): Author
+    {
+        $institution = $node->getElementsByTagName('institution');
+        if (!$institution->length) {
+            return $author;
+        }
+        foreach ($institution as $item) {
+            $author->setData(
+                'instituition-' . $item->getAttribute('content-type'),
+                $item->textContent,
+                $this->locale
+            );
+        }
+        return $author;
+    }
+
+    private function setCity(\DOMNode $node, Author $author): Author
+    {
+        $city = $node->getElementsByTagName('city');
+        if (!$city->length) {
+            return $author;
+        }
+        $author->setData('city', $city->item(0)->textContent, $this->locale);
+        return $author;
+    }
+
+    private function setCountry(\DOMNode $node, Author $author): Author
+    {
+        $country = $node->getElementsByTagName('country');
+        if (!$country->length) {
+            $author->setData('country', $this->countryCode);
+            return $author;
+        }
+        $author->setData('country', $country->item(0)->textContent);
+        $author->setData('countryCode', $country->item(0)->getAttribute('country'));
+        return $author;
     }
 
     private function isPrimaryContact(\DOMNode $node): bool
@@ -204,9 +267,9 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         return false;
     }
 
-    private function getHistoryDate(\DOMXPath $xpath, string $type): ?string
+    private function getHistoryDate(string $type): ?string
     {
-        $elements = $xpath->query('//history/date');
+        $elements = $this->xpath->query('//history/date');
         if ($elements->length)
         foreach($elements as $element) {
             if ($element->getAttribute('date-type') == $type) {

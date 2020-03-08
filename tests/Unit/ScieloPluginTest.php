@@ -94,7 +94,7 @@ class ScieloPluginTest extends BaseTestCase
         HookRegistry::register('ScieloArticleFilter::saveAuthors', function($hookName, $args) {
             $locale = $args[0]->getSubmissionLocale();
             $this->assertEquals('en_US', $locale);
-            $this->assertEquals('EN', $args[0]->getCountry());
+            $this->assertEquals('Brazil', $args[0]->getCountry());
             $this->assertEquals('Jhon', $args[0]->getGivenName($locale));
             $this->assertEquals('Doe', $args[0]->getFamilyName($locale));
             $this->assertEquals(14, $args[0]->getUserGroupId());
