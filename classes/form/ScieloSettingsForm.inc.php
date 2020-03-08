@@ -46,6 +46,7 @@ class ScieloSettingsForm extends Form {
 
 		// Add form validation checks.
 		$this->addCheck(new FormValidatorEmail($this, 'defaultAuthorEmail', 'required', 'plugins.importexport.crossref.settings.form.defaultAuthorEmailRequired'));
+		$this->addCheck(new FormValidator($this, 'defaultLocale', 'required', 'plugins.importexport.crossref.settings.form.defaultLocaleRequired'));
 		$this->addCheck(new FormValidatorPost($this));
 		$this->addCheck(new FormValidatorCSRF($this));
 	}
@@ -94,6 +95,7 @@ class ScieloSettingsForm extends Form {
 	function getFormFields() {
 		return array(
 			'defaultAuthorEmail' => 'string',
+			'defaultLocale' => 'string',
 		);
 	}
 

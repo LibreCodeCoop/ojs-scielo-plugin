@@ -47,7 +47,7 @@ class ScieloPlugin extends ImportExportPlugin {
 
 				$form = $this->_instantiateSettingsForm($context);
 				$form->initData();
-				if (!$form->getData('defaultAuthorEmail')) {
+				if (!$form->getData('defaultAuthorEmail') && !$form->getData('defaultLocale')) {
 					$templateMgr->assign(array(
 						'configurationErrors' => EXPORT_CONFIG_ERROR_SETTINGS,
 					));
