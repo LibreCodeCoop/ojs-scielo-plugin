@@ -71,7 +71,7 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
             $args[2]->fields = $args[2]->bind = [
                 'filter_id' => 1,
                 'class_name' => 'plugins.importexport.scielo.filter.ScieloArticleFilter',
-                'filter_group_id' => 1,
+                'filter_group_id' => 36,
                 'display_name' => 'ScieloArticleFilter',
                 'is_template' => 0,
                 'parent_filter_id' => 0,
@@ -108,7 +108,7 @@ class BaseTestCase extends PHPUnit_Framework_TestCase
                         'output_type' => 'metadata::plugins.metadata.mods34.schema.Mods34Schema(ARTICLE)',
                     ];
                     break;
-                default:
+                case 36:
                     $args[2]->fields = $args[2]->bind = [
                         'filter_group_id' => 1,
                         'symbolic' => 'scielo-xml=>article',
