@@ -101,11 +101,23 @@ class ScieloPluginTest extends BaseTestCase
             $this->assertContains($args[0]->getUserGroupId(), [14]);
             $this->assertEquals(1, $args[0]->getIncludeInBrowse());
             $this->assertEquals(1, $args[0]->getSubmissionId());
+            $this->assertEquals('jhondoe@localhost.fake', $args[0]->getEmail());
             return true;
         });
         HookRegistry::clear('authordao::getAdditionalFieldNames');
         HookRegistry::register('authordao::getAdditionalFieldNames', function($hookName, $args) {
             $args[1][] = 'suffix';
+        });
+        HookRegistry::clear('pluginsettingsdao::_getpluginsettings');
+        HookRegistry::register('pluginsettingsdao::_getpluginsettings', function($hookName, $args) {
+            $args[2] = new ADORecordSet_array();
+            $args[2]->_numOfRows = $args[2]->_currentRow= 1;
+            $args[2]->fields = $args[2]->bind = [
+                'setting_name' => 'defaultAuthorEmail',
+                'setting_value' => 'jhondoe@localhost.fake',
+                'setting_type' => 'string'
+            ];
+            return true;
         });
 
         $return = $this->executeCLI('scielo', [

@@ -32,11 +32,23 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
     private $translations = [];
 
     /**
+     * ScieloPlugin
+     *
+     * @var ScieloPlugin
+     */
+    private $plugin;
+
+    /**
      * Constructor
      * @param $filterGroup FilterGroup
      */
     public function __construct($filterGroup) {
         parent::__construct($filterGroup);
+    }
+
+    public function setPlugin(ScieloPlugin $plugin)
+    {
+        $this->plugin = $plugin;
     }
 
     public function getClassName()
@@ -171,6 +183,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             $author->setPrimaryContact($this->isPrimaryContact($authorNode));
             $author->setIncludeInBrowse(1);
             $author->setSubmissionLocale($submission->getLocale());
+            $author->setEmail($this->plugin->getSetting($submission->getJournalId(), 'defaultAuthorEmail'));
             if (!HookRegistry::call('ScieloArticleFilter::saveAuthors', array(&$author, &$authorDao, &$submission))) {
                 $authorDao->insertObject($author);
             }

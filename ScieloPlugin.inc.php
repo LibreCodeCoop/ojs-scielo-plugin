@@ -185,6 +185,7 @@ class ScieloPlugin extends ImportExportPlugin {
 		$importFilter->setDeployment($deployment);
 
 		$importXml = $this->replaceByLocalPublicId($importXml);
+		$importFilter->setPlugin($this);
 		return $importFilter->execute($importXml);
 	}
 
