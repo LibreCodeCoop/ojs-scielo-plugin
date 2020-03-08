@@ -46,6 +46,13 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
     private $xpath;
 
     /**
+     * Article
+     *
+     * @var Article
+     */
+    private $submission;
+
+    /**
      * Constructor
      * @param $filterGroup FilterGroup
      */
@@ -108,9 +115,9 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         if (!$doi) {
             throw new Exception('DOI not found');
         }
-        $submission = $submissionDao->getBySetting('DOI', $doi);
-        if (!$submission->getCount()) {
-            $submission = $submissionDao->newDataObject();
+        $this->submission = $submissionDao->getBySetting('DOI', $doi);
+        if (!$this->submission->getCount()) {
+            $this->submission = $submissionDao->newDataObject();
 
             $sectionTitle = trim($this->xpath->query('//article-categories/subj-group/subject')->item(0)->textContent);
             if (!$sectionTitle) {
@@ -121,56 +128,62 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             if (!$sectionId) {
                 throw new Exception('Section not found in OJS');
             }
-            $submission->setSectionId($sectionId);
+            $this->submission->setSectionId($sectionId);
 
             $this->countryCode = strtoupper($node->ownerDocument->documentElement->getAttribute('xml:lang'));
             $this->locale = $this->countryToLocale($this->countryCode);
             if (empty($this->locale)) {
                 $this->locale = $context->getPrimaryLocale();
             }
-            $submission->setLocale($this->locale);
-            $submission->setLanguage($this->locale);
+            $this->submission->setLocale($this->locale);
+            $this->submission->setLanguage($this->locale);
             $this->getLanguageTranslations($node);
 
-            $submission->setContextId($context->getId());
-            $submission->stampStatusModified();
-            $submission->setDateSubmitted($this->getHistoryDate('received'). ' 00:00:00');
-            $submission->setAbstract($this->getINnerHTML($node->getElementsByTagName('abstract')->item(0)), $this->locale);
+
+            $license = $node->getElementsByTagName('license');
+            if ($license->length) {
+                $this->submission->setLicenseURL($license->item(0)->getAttribute('xlink:href'));
+            }
+            $this->submission->setContextId($context->getId());
+            $this->submission->stampStatusModified();
+            $this->submission->setDateSubmitted($this->getHistoryDate('received'). ' 00:00:00');
+            $this->submission->setAbstract($this->getINnerHTML($node->getElementsByTagName('abstract')->item(0)), $this->locale);
             foreach ($this->translations as $short => $long) {
                 $element = $this->xpath->query('//trans-abstract[@xml:lang="'.$short.'"]');
                 if ($element->length) {
-                    $submission->setAbstract($this->getINnerHTML($element->item(0)), $long);
+                    $this->submission->setAbstract($this->getINnerHTML($element->item(0)), $long);
                 }
             }
-            $submission->setStatus(STATUS_QUEUED);
-            $submission->setStageId(WORKFLOW_STAGE_ID_PRODUCTION);
-            $submission->setSubmissionProgress(0);
-            $submission->setTitle($this->getINnerHTML($node->getElementsByTagName('article-title')->item(0)), $this->locale);
+            $this->submission->setStatus(STATUS_QUEUED);
+            $this->submission->setStageId(WORKFLOW_STAGE_ID_PRODUCTION);
+            $this->submission->setSubmissionProgress(0);
+            $this->submission->setTitle($this->getINnerHTML($node->getElementsByTagName('article-title')->item(0)), $this->locale);
             foreach ($this->translations as $short => $long) {
                 $element = $this->xpath->query('//trans-title-group[@xml:lang="'.$short.'"]/trans-title');
                 if ($element->length) {
-                    $submission->setTitle($this->getINnerHTML($element->item(0)), $long);
+                    $this->submission->setTitle($this->getINnerHTML($element->item(0)), $long);
                 }
             }
 
-            $submission->setData('DOI', $doi);
-            if (!HookRegistry::call('ScieloArticleFilter::saveSubmission', array(&$submission))) {
-                $submissionDao->insertObject($submission);
+            $this->submission->setData('DOI', $doi);
+            if (!HookRegistry::call('ScieloArticleFilter::saveSubmission', array(&$this->submission))) {
+                $submissionDao->insertObject($this->submission);
             }
-            $deployment->setSubmission($submission);
-            $this->saveAuthors($submission, $node);
-            $this->saveFiles($submission, $node);
+            $deployment->setSubmission($this->submission);
+            $this->saveAuthors($node);
+            $this->saveFiles($node);
         }
-        return $submission;
+        return $this->submission;
     }
 
-    private function saveAuthors(\Article $submission, \DOMElement $node)
+    private function saveAuthors(\DOMElement $node)
     {
         $authors = $this->xpath->query('//contrib-group/contrib');
         if(!$authors->length) {
             return;
         }
         $authorDao = DAORegistry::getDAO('AuthorDAO');
+        /** @var Author */
         $author = $authorDao->newDataObject();
         foreach ($authors as $authorNode) {
             $name = $authorNode->getElementsByTagName('name')->item(0);
@@ -184,33 +197,52 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
                 $author->setData('suffix', trim($name->getElementsByTagName('suffix')->item(0)->textContent), $this->locale);
             }
             $author->setUserGroupId(14); // Author
-            $author->setSubmissionId($submission->getId());
+            $author->setSubmissionId($this->submission->getId());
             $author->setPrimaryContact($this->isPrimaryContact($authorNode));
             $author->setIncludeInBrowse(1);
-            $author->setSubmissionLocale($submission->getLocale());
-            $author->setEmail($this->plugin->getSetting($submission->getJournalId(), 'defaultAuthorEmail'));
-            $author = $this->setAff($node, $author);
+            $author->setSubmissionLocale($this->submission->getLocale());
+            $author = $this->setXref($node, $author);
             if (!HookRegistry::call('ScieloArticleFilter::saveAuthors', array(&$author, &$authorDao, &$submission))) {
                 $authorDao->insertObject($author);
             }
         }
     }
 
-    private function setAff(\DOMNode $node, Author $author): Author
+    private function getPrimaryContactEmail()
+    {
+        $this->xpath->query('//aff[@id="'.$rid.'"]')->item(0);
+    }
+
+    private function setXref(\DOMNode $node, Author $author): Author
     {
         $elements = $node->getElementsByTagName('xref');
         if (!$elements->length) {
             return $author;
         }
         foreach($elements as $element) {
-            if ($element->getAttribute('ref-type') == 'aff') {
-                $rid = $element->getAttribute('rid');
-                $aff = $this->xpath->query('//aff[@id="'.$rid.'"]')->item(0);
-                $author = $this->setCountry($aff, $author);
-                $author = $this->setCity($aff, $author);
-                $author = $this->setinstituition($aff, $author);
-                return $author;
-            }
+            $rid = $element->getAttribute('rid');
+            $type = $element->getAttribute('ref-type');
+            $aff = $this->xpath->query('//'.$type.'[@id="'.$rid.'"]')->item(0);
+            $author = $this->setCountry($aff, $author);
+            $author = $this->setCity($aff, $author);
+            $author = $this->setinstituition($aff, $author);
+            $author = $this->setEmail($aff, $author);
+        }
+        return $author;
+    }
+
+    private function setEmail(\DOMNode $node, Author $author): Author
+    {
+        $email = $node->getElementsByTagName('email');
+        if ($email->length) {
+            $author->setEmail($email->item(0)->textContent);
+        } else {
+            $author->setEmail(
+                $this->plugin->getSetting(
+                    $this->submission->getJournalId(),
+                    'defaultAuthorEmail'
+                )
+            );
         }
         return $author;
     }
@@ -223,9 +255,8 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         }
         foreach ($institution as $item) {
             $author->setData(
-                'instituition-' . $item->getAttribute('content-type'),
-                $item->textContent,
-                $this->locale
+                'institution-' . $item->getAttribute('content-type'),
+                trim($item->textContent)
             );
         }
         return $author;
@@ -243,13 +274,23 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
 
     private function setCountry(\DOMNode $node, Author $author): Author
     {
-        $country = $node->getElementsByTagName('country');
-        if (!$country->length) {
-            $author->setData('country', $this->countryCode);
+        if ($author->getCountry()) {
             return $author;
         }
-        $author->setData('country', $country->item(0)->textContent);
-        $author->setData('countryCode', $country->item(0)->getAttribute('country'));
+        $country = $node->getElementsByTagName('country');
+        /** @var CountryDAO */
+        $countryDao = DAORegistry::getDAO('CountryDAO');
+        $defaultLocale = $this->plugin->getSetting(
+            $this->submission->getJournalId(),
+            'defaultLocale'
+        );
+        if (!$country->length) {
+            $author->setData('country', $countryDao->getCountry($this->countryCode, $defaultLocale));
+            return $author;
+        }
+        $countryCode = $country->item(0)->getAttribute('country');
+        $author->setData('country', $countryDao->getCountry($countryCode, $defaultLocale));
+        $author->setData('countryCode', $countryCode);
         return $author;
     }
 

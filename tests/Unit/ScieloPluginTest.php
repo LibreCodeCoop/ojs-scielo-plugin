@@ -85,6 +85,8 @@ class ScieloPluginTest extends BaseTestCase
             $this->assertEquals('<p>Trans Abstract es.</p>', $args[0]->getAbstract('es_ES'));
             $this->assertEquals('2016-08-31 00:00:00', $args[0]->getDateSubmitted());
             $this->assertEquals(1, $args[0]->getJournalId());
+            $this->assertEquals('10.2495/0102-311X00785447', $args[0]->getData('DOI'));
+            $this->assertEquals('http://creativecommons.org/licenses/by/4.0/', $args[0]->getData('licenseURL'));
             $this->assertEquals(STATUS_QUEUED, $args[0]->getStatus());
             $this->assertEquals(WORKFLOW_STAGE_ID_PRODUCTION, $args[0]->getStageId());
             $args[0]->setId(1);
@@ -95,13 +97,18 @@ class ScieloPluginTest extends BaseTestCase
             $locale = $args[0]->getSubmissionLocale();
             $this->assertEquals('en_US', $locale);
             $this->assertEquals('Brazil', $args[0]->getCountry());
+            $this->assertEquals('BR', $args[0]->getData('countryCode'));
             $this->assertEquals('Jhon', $args[0]->getGivenName($locale));
             $this->assertEquals('Doe', $args[0]->getFamilyName($locale));
             $this->assertEquals(14, $args[0]->getUserGroupId());
             $this->assertContains($args[0]->getUserGroupId(), [14]);
             $this->assertEquals(1, $args[0]->getIncludeInBrowse());
             $this->assertEquals(1, $args[0]->getSubmissionId());
-            $this->assertEquals('jhondoe@localhost.fake', $args[0]->getEmail());
+            $this->assertEquals('jhondoe@email.com', $args[0]->getEmail());
+            $this->assertEquals('Sector, University Name, City, Country.', $args[0]->getData('institution-original'));
+            $this->assertEquals('University Name', $args[0]->getData('institution-normalized'));
+            $this->assertEquals('Sector 2', $args[0]->getData('institution-orgdiv1'));
+            $this->assertEquals('University Name', $args[0]->getData('institution-orgname'));
             return true;
         });
         HookRegistry::clear('authordao::getAdditionalFieldNames');
@@ -111,11 +118,20 @@ class ScieloPluginTest extends BaseTestCase
         HookRegistry::clear('pluginsettingsdao::_getpluginsettings');
         HookRegistry::register('pluginsettingsdao::_getpluginsettings', function($hookName, $args) {
             $args[2] = new ADORecordSet_array();
-            $args[2]->_numOfRows = $args[2]->_currentRow= 1;
+            $args[2]->_numOfRows = 2;
+            $args[2]->_currentRow= 0;
             $args[2]->fields = $args[2]->bind = [
                 'setting_name' => 'defaultAuthorEmail',
                 'setting_value' => 'jhondoe@localhost.fake',
                 'setting_type' => 'string'
+            ];
+            $args[2]->_array = [
+                $args[2]->fields,
+                [
+                    'setting_name' => 'defaultLocale',
+                    'setting_value' => 'pt_BR',
+                    'setting_type' => 'string'
+                ]
             ];
             return true;
         });

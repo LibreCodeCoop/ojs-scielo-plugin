@@ -70,6 +70,11 @@
           <year>2016</year>
         </date>
       </history>
+      <permissions>
+        <license license-type="open-access" xlink:href="http://creativecommons.org/licenses/by/4.0/" xml:lang="es">
+          <license-p>Creative Commons</license-p>
+        </license>
+      </permissions>
       <abstract>
         <p>Abstract en.</p>
       </abstract>
