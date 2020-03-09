@@ -184,6 +184,11 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         return $this->submission;
     }
 
+    private function saveFiles(\DOMElement $node)
+    {
+        
+    }
+
     private function saveAuthors(\DOMElement $node)
     {
         $authors = $this->xpath->query('//contrib-group/contrib');
