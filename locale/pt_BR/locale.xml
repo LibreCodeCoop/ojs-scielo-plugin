@@ -11,7 +11,7 @@
 	* Localization strings.
 	-->
 
-<locale name="en_US" full_name="U.S. English">
+<locale name="pt_BR" full_name="Português (Brasil)">
 	<message key="plugins.importexport.scielo.displayName">SciELO XML Plugin</message>
 	<message key="plugins.importexport.scielo.name">SciELO Import Plugin</message>
 	<message key="plugins.importexport.scielo.description">Import SciELO article in OJS's using XML format.</message>

@@ -37,30 +37,63 @@ class ScieloPlugin extends ImportExportPlugin {
 	 */
 	public function display($args, $request) {
 		parent::display($args, $request);
-
-		// Get the journal or press id
-		$contextId = Application::get()->getRequest()->getContext()->getId();
-
-		// Use the path to determine which action
-		// should be taken.
-		$path = array_shift($args);
-		switch ($path) {
-
-			// Stream a CSV file for download
-			case 'exportAll':
-				header('content-type: text/comma-separated-values');
-				header('content-disposition: attachment; filename=articles-' . date('Ymd') . '.csv');
-				$publications = $this->getAll($contextId);
-				$this->export($publications, 'php://output');
-				break;
-
-			// When no path is requested, display a list of publications
-			// to export and a button to run the `exportAll` path.
-			default:
+		switch (array_shift($args)) {
+			case 'index':
+			case '':
+				$router = $request->getRouter();
+				$context = $router->getContext($request);
+		
 				$templateMgr = TemplateManager::getManager($request);
-				$templateMgr->assign('publications', $this->getAll($contextId));
-				$templateMgr->display($this->getTemplateResource('export.tpl'));
+
+				$form = $this->_instantiateSettingsForm($context);
+				$form->initData();
+				if (!$form->getData('defaultAuthorEmail') && !$form->getData('defaultLocale')) {
+					$templateMgr->assign(array(
+						'configurationErrors' => EXPORT_CONFIG_ERROR_SETTINGS,
+					));
+				}
+				$templateMgr->display($this->getTemplateResource('index.tpl'));
+				break;
 		}
+	}
+
+	/**
+	 * @copydoc Plugin::manage()
+	 */
+	function manage($args, $request) {
+		$router = $request->getRouter();
+		$context = $router->getContext($request);
+
+		$form = $this->_instantiateSettingsForm($context);
+		switch ($request->getUserVar('verb')) {
+			case 'index':
+				$form->initData();
+				return new JSONMessage(true, $form->fetch($request));
+			case 'save':
+				$form->readInputData();
+				if ($form->validate()) {
+					$form->execute();
+					$notificationManager = new NotificationManager();
+					$user = $request->getUser();
+					$notificationManager->createTrivialNotification($user->getId(), NOTIFICATION_TYPE_SUCCESS);
+					return new JSONMessage();
+				} else {
+					return new JSONMessage(true, $form->fetch($request));
+				}
+				break;
+		}
+	}
+
+	/**
+	 * Instantiate the settings form.
+	 * @param $context Context
+	 * @return CrossRefSettingsForm
+	 */
+	function _instantiateSettingsForm($context) {
+		$settingsFormClassName = 'ScieloSettingsForm';
+		$this->import('classes.form.' . $settingsFormClassName);
+		$settingsForm = new $settingsFormClassName($this, $context->getId());
+		return $settingsForm;
 	}
 
 	/**
@@ -152,6 +185,7 @@ class ScieloPlugin extends ImportExportPlugin {
 		$importFilter->setDeployment($deployment);
 
 		$importXml = $this->replaceByLocalPublicId($importXml);
+		$importFilter->setPlugin($this);
 		return $importFilter->execute($importXml);
 	}
 
