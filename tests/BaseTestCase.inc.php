@@ -2,7 +2,9 @@
 
 import('lib.pkp.tests.PKPTestHelper');
 
-class BaseTestCase extends PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class BaseTestCase extends TestCase
 {
     /**
      * Execute the plug-in via its CLI interface.
