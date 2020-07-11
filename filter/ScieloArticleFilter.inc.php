@@ -80,12 +80,13 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         $importedObjects =& parent::process($input);
         // Index imported content
         import('classes.search.ArticleSearchIndex');
+        $ArticleSearchIndex = new ArticleSearchIndex();
         foreach ($importedObjects as $submission) {
             assert(is_a($submission, 'Submission'));
-            ArticleSearchIndex::articleMetadataChanged($submission);
-            ArticleSearchIndex::submissionFilesChanged($submission);
+            $ArticleSearchIndex->articleMetadataChanged($submission);
+            $ArticleSearchIndex->submissionFilesChanged($submission);
         }
-        ArticleSearchIndex::articleChangesFinished();
+        $ArticleSearchIndex->articleChangesFinished();
 
         return $importedObjects;
     }
