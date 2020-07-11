@@ -290,7 +290,10 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             return $author;
         }
         $countryCode = $country->item(0)->getAttribute('country');
-        $author->setData('country', $countryDao->getCountry($countryCode, $defaultLocale));
+        $countries = $countryDao->getCountries();
+        if (isset ($countries[$countryCode])) {
+            $author->setData('country', $countries[$countryCode]);
+        }
         $author->setData('countryCode', $countryCode);
         return $author;
     }
