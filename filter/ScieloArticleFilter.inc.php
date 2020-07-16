@@ -171,9 +171,14 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
             $deployment->setSubmission($this->submission);
             $this->saveAuthors($node);
-            // $this->saveFiles($node);
+            $this->saveFiles($node);
         }
         return $this->submission;
+    }
+
+    private function saveFiles(\DOMElement $node)
+    {
+
     }
 
     private function saveAuthors(\DOMElement $node)
