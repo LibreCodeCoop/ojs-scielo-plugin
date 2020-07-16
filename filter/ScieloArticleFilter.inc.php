@@ -116,8 +116,8 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
         if (!$doi) {
             throw new Exception('DOI not found');
         }
-        $this->submission = $submissionDao->getBySetting('DOI', $doi);
-        if (!$this->submission->getCount()) {
+        $this->submission = $submissionDao->getDataObjectSettings('publication_settings', 'setting_name', 'doi', $submissionDao->newDataObject());
+        if (!$this->submission) {
             $this->submission = $submissionDao->newDataObject();
 
             $sectionTitle = trim($this->xpath->query('//article-categories/subj-group/subject')->item(0)->textContent);
@@ -136,33 +136,32 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             if (empty($this->locale)) {
                 $this->locale = $context->getPrimaryLocale();
             }
-            $this->submission->setLocale($this->locale);
-            $this->submission->setLanguage($this->locale);
+            $this->submission->setData('locale',$this->locale);
+            $this->submission->setData('language', $this->locale);
             $this->getLanguageTranslations($node);
-
 
             $license = $node->getElementsByTagName('license');
             if ($license->length) {
-                $this->submission->setLicenseURL($license->item(0)->getAttribute('xlink:href'));
+                $this->submission->setData('license_url', $license->item(0)->getAttribute('xlink:href'));
             }
-            $this->submission->setContextId($context->getId());
+            $this->submission->setData('context_id',$context->getId());
             $this->submission->stampStatusModified();
-            $this->submission->setDateSubmitted($this->getHistoryDate('received'). ' 00:00:00');
-            $this->submission->setAbstract($this->getINnerHTML($node->getElementsByTagName('abstract')->item(0)), $this->locale);
+            $this->submission->setData('date_submitted', $this->getHistoryDate('received'). ' 00:00:00');
+            $this->submission->setData('abstract', $this->getINnerHTML($node->getElementsByTagName('abstract')->item(0)), $this->locale);
             foreach ($this->translations as $short => $long) {
                 $element = $this->xpath->query('//trans-abstract[@xml:lang="'.$short.'"]');
                 if ($element->length) {
-                    $this->submission->setAbstract($this->getINnerHTML($element->item(0)), $long);
+                    $this->submission->setData('abstract', $this->getINnerHTML($element->item(0)), $long);
                 }
             }
-            $this->submission->setStatus(STATUS_QUEUED);
-            $this->submission->setStageId(WORKFLOW_STAGE_ID_PRODUCTION);
-            $this->submission->setSubmissionProgress(0);
-            $this->submission->setTitle($this->getINnerHTML($node->getElementsByTagName('article-title')->item(0)), $this->locale);
+            $this->submission->setData('status', STATUS_QUEUED);
+            $this->submission->setData('stage_id', WORKFLOW_STAGE_ID_PRODUCTION);
+            $this->submission->setData('submission_progress', 0);
+            $this->submission->setData('title', $this->getINnerHTML($node->getElementsByTagName('article-title')->item(0)), $this->locale);
             foreach ($this->translations as $short => $long) {
                 $element = $this->xpath->query('//trans-title-group[@xml:lang="'.$short.'"]/trans-title');
                 if ($element->length) {
-                    $this->submission->setTitle($this->getINnerHTML($element->item(0)), $long);
+                    $this->submission->setData('title', $this->getINnerHTML($element->item(0)), $long);
                 }
             }
 
@@ -172,7 +171,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             }
             $deployment->setSubmission($this->submission);
             $this->saveAuthors($node);
-            $this->saveFiles($node);
+            // $this->saveFiles($node);
         }
         return $this->submission;
     }
@@ -201,7 +200,7 @@ class ScieloArticleFilter extends ScieloSubmissionFilter
             $author->setSubmissionId($this->submission->getId());
             $author->setPrimaryContact($this->isPrimaryContact($authorNode));
             $author->setIncludeInBrowse(1);
-            $author->setSubmissionLocale($this->submission->getLocale());
+            $author->setSubmissionLocale($this->submission->getData('locale'));
             $author = $this->setXref($node, $author);
             if (!HookRegistry::call('ScieloArticleFilter::saveAuthors', array(&$author, &$authorDao, &$submission))) {
                 $authorDao->insertObject($author);
